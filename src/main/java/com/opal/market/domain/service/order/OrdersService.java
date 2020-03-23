@@ -79,7 +79,6 @@ public class OrdersService {
                 if (sellOrder.getStatus() == OrderStatus.EXECUTED) {
                     executedOrders.add(sellOrder);
                     log.info("OrderExecuted:" + sellOrder);
-//                    log.info(sellOrder.getExecutions());
                 }
                 accumulatedQuantity += execution.getQuantity();
                 sellIndex++;
@@ -87,8 +86,9 @@ public class OrdersService {
         }
         catch (OrdersDoesNotMatchException e) {}
         catch (OrderInvalidStatusException e) {
-//            sellOrders.remove(sellIndex);
-//            matchAndExecute(buyOrder, sellOrders);
+            log.error("OrderInvalidStatusException thrown");
+            sellOrders.remove(sellIndex);
+            matchAndExecute(buyOrder, sellOrders, priceSpecification);
         }
 
         return executedOrders;

@@ -1,13 +1,18 @@
 package com.opal.market;
 
+import com.opal.market.application.market.IntervalMarketQueueThread;
+import com.opal.market.application.market.NonBlockingTask;
+import com.opal.market.domain.models.PriceSpecification;
+import com.opal.market.domain.models.market.Market;
 import com.opal.market.domain.models.market.OrderBook;
-import com.opal.market.domain.models.market.IntervalMarketStrategy;
-import com.opal.market.application.market.Market;
-import com.opal.market.domain.models.MarketService;
+import com.opal.market.domain.models.order.Order;
+import com.opal.market.domain.models.order.OrderSide;
 import com.opal.market.domain.service.order.OrdersExecutor;
 import com.opal.market.domain.service.order.OrdersService;
 
+import java.time.format.SignStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -19,14 +24,15 @@ import static java.lang.Thread.sleep;
 
 public class MarketMockApplication {
 
-    private MarketService market;
+    private final OrdersService ordersService;
 
-    private OrdersExecutor ordersExecutor;
+    private IntervalMarketQueueThread marketQueue;
 
 
     public MarketMockApplication() {
-        ordersExecutor = new OrdersExecutor(new OrdersService());
-        market = new Market(ordersExecutor, new IntervalMarketStrategy());
+        ordersService = new OrdersService();
+        OrdersExecutor ordersExecutor = new OrdersExecutor(ordersService);
+        marketQueue = new IntervalMarketQueueThread(new Market(ordersExecutor));
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -35,13 +41,14 @@ public class MarketMockApplication {
 
     public void run() throws InterruptedException {
         long startTime = System.currentTimeMillis();
-        market.start();
+        marketQueue.start();
 //        startMetrics();
 
         List<Callable<Long>> tasks = new ArrayList<>();
-        tasks.add(new OrderMockCreator(market));
-//        tasks.add(new OrderMockCreator(market));
-        ExecutorService executorService = Executors.newFixedThreadPool(2);
+        tasks.add(new OrderMockCreator(marketQueue));
+//        tasks.add(new OrderMockCreator(marketQueue));
+//        tasks.add(new OrderMockCreator(marketQueue));
+        ExecutorService executorService = Executors.newFixedThreadPool(tasks.size());
         executorService.invokeAll(tasks);
 
         long elapsedTime = 0;
@@ -50,21 +57,37 @@ public class MarketMockApplication {
         executorService.awaitTermination(20, TimeUnit.SECONDS);
         elapsedTime = System.currentTimeMillis() - startTime;
 
-        market.join(3000);
-
         System.out.println("--------------------------- Elapsed time: " + elapsedTime);
-        market.setRunning(false);
 
-        sleep(3000);
+        boolean matches;
+        int i=0;
+        List<Order> buyBook;
+        List<Order> sellBook;
 
-        Map<String, Boolean> matches = ordersExecutor.hasMatch(market.getBooks());
+        do {
+            marketQueue.stats();
+            /*NonBlockingTask<Map<String, Boolean>> mapNonBlockingTask = marketQueue.hasMatch();
+            Map<String, Boolean> stringBooleanMap = mapNonBlockingTask.get();
 
-        for (String symbol : market.getBooks().keySet()) {
-            OrderBook orderBook = market.getOrderBook(symbol);
-            System.out.println(String.format("------------- Orders book %s size sell %d, buy %d", symbol, orderBook.getSellBook().size(), orderBook.getBuyBook().size()));
-            System.out.println(String.format("Book %s %s matches", symbol, matches.get(symbol).toString()));
-            orderBook.print();
-        }
+            for (String symbol: stringBooleanMap.keySet()) {
+                System.out.println(String.format("%s %s matches", symbol, stringBooleanMap.get(symbol) ? "has":"doesn't have"));
+            }*/
+
+            marketQueue.join(1000);
+
+            NonBlockingTask<Order[]> task = marketQueue.getOrderBook("LRCX", OrderSide.BUY);
+            buyBook = Arrays.asList(task.get());
+
+            task = marketQueue.getOrderBook("LRCX", OrderSide.SELL);
+            sellBook = Arrays.asList(task.get());
+
+            matches = ordersService.hasMatch(buyBook, sellBook, new PriceSpecification());
+        } while (matches && i++<300);
+
+        marketQueue.stats();
+        marketQueue.setRunning(false);
+
+        System.out.println("--------------------------- Elapsed time: " + (System.currentTimeMillis() - startTime));
     }
 
     private void startMetrics() {
@@ -79,7 +102,7 @@ public class MarketMockApplication {
                 do {
                     sleep(1000);
 
-                    int totalReceived = market.getTotalReceived();
+                    int totalReceived = marketQueue.getTotalReceived();
                     ordersPerSecond.add(totalReceived - last);
                     last = totalReceived;
 
@@ -89,7 +112,7 @@ public class MarketMockApplication {
                 e.printStackTrace();
             }
 
-            System.out.println("------------- Market closed and received " + market.getTotalReceived() + " orders -----------");
+            System.out.println("------------- Market closed and received " + marketQueue.getTotalReceived() + " orders -----------");
             System.out.println(ordersPerSecond);
         }).start();
     }

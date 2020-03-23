@@ -2,7 +2,7 @@ package com.opal.market.domain.models.equity;
 
 import java.util.Objects;
 
-public class Equity {
+public class Equity implements Cloneable {
 
     private String symbol;
 
@@ -17,6 +17,19 @@ public class Equity {
 
     public void setSymbol(String symbol) {
         this.symbol = symbol;
+    }
+
+    @Override
+    public Equity clone() {
+        Equity equity;
+
+        try {
+            equity = (Equity) super.clone();
+        } catch (CloneNotSupportedException e) {
+            equity = new Equity(symbol);
+        }
+
+        return equity;
     }
 
     @Override

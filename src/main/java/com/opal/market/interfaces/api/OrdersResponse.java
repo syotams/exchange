@@ -2,32 +2,30 @@ package com.opal.market.interfaces.api;
 
 import com.opal.market.domain.models.order.Order;
 
-import java.util.List;
-
 public class OrdersResponse {
 
-    private List<Order> buy;
+    private Order[] buy;
 
-    private List<Order> sell;
+    private Order[] sell;
 
-    public OrdersResponse(List<Order> buyOrders, List<Order> sellOrders) {
+    public OrdersResponse(Order[] buyOrders, Order[] sellOrders) {
         buy = buyOrders;
         sell = sellOrders;
     }
 
-    public List<Order> getBuy() {
+    public Order[] getBuy() {
         return buy;
     }
 
-    public void setBuy(List<Order> buy) {
+    public void setBuy(Order[] buy) {
         this.buy = buy;
     }
 
-    public List<Order> getSell() {
+    public Order[] getSell() {
         return sell;
     }
 
-    public void setSell(List<Order> sell) {
+    public void setSell(Order[] sell) {
         this.sell = sell;
     }
 }

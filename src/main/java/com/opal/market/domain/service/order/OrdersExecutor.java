@@ -1,7 +1,7 @@
 package com.opal.market.domain.service.order;
 
-import com.opal.market.domain.models.market.OrderBook;
 import com.opal.market.domain.models.PriceSpecification;
+import com.opal.market.domain.models.market.OrderBook;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderStatus;
 import org.slf4j.Logger;
@@ -39,7 +39,6 @@ public class OrdersExecutor {
 
         while (buyOrderListIterator.hasNext()) {
             Order buyOrder = buyOrderListIterator.next();
-            priceSpecification.setBuyPrice(buyOrder.getPrice());
             List<Order> executedOrders = ordersService.matchAndExecute(buyOrder, sellOrders, priceSpecification);
 
             if(buyOrder.getStatus() == OrderStatus.EXECUTED) {

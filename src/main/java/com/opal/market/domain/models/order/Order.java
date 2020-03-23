@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Order {
+public class Order implements Cloneable {
 
     private String id;
     
@@ -58,7 +58,7 @@ public class Order {
             return execution;
         }
         else {
-            throw new OrdersDoesNotMatchException();
+            throw new OrdersDoesNotMatchException(String.format("Orders doesn't have a match: but price %s, sell price %s", buyOrder.getPrice(), getPrice()));
         }
     }
 
@@ -175,6 +175,20 @@ public class Order {
 
     public List<Execution> getExecutions() {
         return executions;
+    }
+
+    @Override
+    protected Order clone() {
+        Order order;
+
+        try {
+            order = (Order) super.clone();
+        }
+        catch (CloneNotSupportedException e) {
+            order = new Order(side, equity.clone(), new BigDecimal(price.toEngineeringString()), quantity, userId);
+        }
+
+        return order;
     }
 
     @Override
