@@ -22,20 +22,26 @@ public class OrdersExecutor {
         this.ordersService = ordersService;
     }
 
-    public void execute(Map<String, OrderBook> books) {
+    public int execute(Map<String, OrderBook> books) {
         Set<String> symbols = books.keySet();
 
+        int totalExecuted = 0;
+
         for (String symbol : symbols) {
-            execute(books.get(symbol));
+            totalExecuted += execute(books.get(symbol));
         }
+
+        return totalExecuted;
     }
 
-    public void execute(OrderBook orderBook) {
+    public int execute(OrderBook orderBook) {
         List<Order> buyOrders  = orderBook.getBuyBook();
         List<Order> sellOrders = orderBook.getSellBook();
 
         ListIterator<Order> buyOrderListIterator = buyOrders.listIterator();
         PriceSpecification priceSpecification = new PriceSpecification();
+
+        int totalExecuted = 0;
 
         while (buyOrderListIterator.hasNext()) {
             Order buyOrder = buyOrderListIterator.next();
@@ -43,16 +49,20 @@ public class OrdersExecutor {
 
             if(buyOrder.getStatus() == OrderStatus.EXECUTED) {
                 buyOrderListIterator.remove();
+                totalExecuted++;
             }
 
             if(executedOrders.size()>0) {
                 sellOrders.removeAll(executedOrders);
+                totalExecuted += executedOrders.size();
                 log.info("OrderExecuted:" + buyOrder);
             }
             else {
                 break;
             }
         }
+
+        return totalExecuted;
     }
 
     public Map<String, Boolean> hasMatch(Map<String, OrderBook> books) {

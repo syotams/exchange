@@ -42,7 +42,7 @@ public class MarketMockApplication {
     public void run() throws InterruptedException {
         long startTime = System.currentTimeMillis();
         marketQueue.start();
-//        startMetrics();
+        startMetrics();
 
         List<Callable<Long>> tasks = new ArrayList<>();
         tasks.add(new OrderMockCreator(marketQueue));
@@ -66,12 +66,6 @@ public class MarketMockApplication {
 
         do {
             marketQueue.stats();
-            /*NonBlockingTask<Map<String, Boolean>> mapNonBlockingTask = marketQueue.hasMatch();
-            Map<String, Boolean> stringBooleanMap = mapNonBlockingTask.get();
-
-            for (String symbol: stringBooleanMap.keySet()) {
-                System.out.println(String.format("%s %s matches", symbol, stringBooleanMap.get(symbol) ? "has":"doesn't have"));
-            }*/
 
             marketQueue.join(1000);
 
@@ -93,26 +87,26 @@ public class MarketMockApplication {
     private void startMetrics() {
         List<Integer> ordersPerSecond = new ArrayList<>();
 
-        long startTime = System.currentTimeMillis();
-
         new Thread(() -> {
             try {
                 int last = 0;
 
                 do {
-                    sleep(1000);
+                    sleep(5000);
 
-                    int totalReceived = marketQueue.getTotalReceived();
+                    marketQueue.stats();
+
+                    int totalReceived = marketQueue.getTotalHandled();
                     ordersPerSecond.add(totalReceived - last);
                     last = totalReceived;
 
-                    System.out.println(last);
-                } while (System.currentTimeMillis() - startTime < 10000);
+                    System.out.println(String.format("Market handled %d orders last 5 second", last));
+                } while (marketQueue.isRunning());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            System.out.println("------------- Market closed and received " + marketQueue.getTotalReceived() + " orders -----------");
+            System.out.println("------------- Market received " + marketQueue.getTotalReceived() + " orders -----------");
             System.out.println(ordersPerSecond);
         }).start();
     }

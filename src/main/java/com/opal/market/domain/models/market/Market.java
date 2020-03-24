@@ -14,6 +14,8 @@ public class Market {
 
     private OrdersExecutor ordersExecutor;
 
+    private int totalExecuted;
+
 
     public Market(@Autowired OrdersExecutor ordersExecutor) {
         this.ordersExecutor = ordersExecutor;
@@ -43,13 +45,15 @@ public class Market {
 
     public String[] stats() {
         Set<String> symbols = books.keySet();
-        String[] result = new String[symbols.size()];
+        String[] result = new String[symbols.size() + 1];
 
         int i=0;
 
         for (String symbol : symbols) {
             result[i++] = String.format("%s has %d in buy book and %d in sell book", symbol, books.get(symbol).getBuyBook().size(), books.get(symbol).getSellBook().size());
         }
+
+        result[i] = String.format("Total %d orders executed buy and sell", getTotalExecuted());
 
         return result;
     }
@@ -63,7 +67,7 @@ public class Market {
     }
 
     public void execute() {
-        ordersExecutor.execute(books);
+        totalExecuted += ordersExecutor.execute(books);
     }
 
     public Map<String, Boolean> hasMatch() {
@@ -88,5 +92,9 @@ public class Market {
         }
 
         return orders;
+    }
+
+    public int getTotalExecuted() {
+        return totalExecuted;
     }
 }

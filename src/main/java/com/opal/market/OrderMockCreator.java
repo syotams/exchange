@@ -33,19 +33,19 @@ public class OrderMockCreator implements Callable<Long> {
                 Order buyOrder3  = new Order(OrderSide.BUY, new Equity("MU"), new BigDecimal(String.valueOf( ((int) (Math.random()*2)+150) )), (int) (Math.random()*100+1), 2L);
 
                 marketQueue.addItem(sellOrder1);
-                Thread.sleep(timeInterval);
+//                Thread.sleep(timeInterval);
 
                 marketQueue.addItem(buyOrder1);
-                Thread.sleep(timeInterval);
+//                Thread.sleep(timeInterval);
 
                 marketQueue.addItem(sellOrder2);
-                Thread.sleep(timeInterval);
+//                Thread.sleep(timeInterval);
 
                 marketQueue.addItem(buyOrder2);
-                Thread.sleep(timeInterval);
+//                Thread.sleep(timeInterval);
 
                 marketQueue.addItem(sellOrder3);
-                Thread.sleep(timeInterval);
+//                Thread.sleep(timeInterval);
 
                 marketQueue.addItem(buyOrder3);
                 Thread.sleep(timeInterval);
