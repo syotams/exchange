@@ -6,6 +6,7 @@ import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderSide;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.concurrent.Callable;
 
 public class OrderMockCreator implements Callable<Long> {
@@ -21,16 +22,21 @@ public class OrderMockCreator implements Callable<Long> {
         long startTime = System.currentTimeMillis();
 
         try {
-            int i = 16667;
+            int i = 100000; //16667;
             int timeInterval = 10;
+            MathContext mathContext = new MathContext(5);
+
+            BigDecimal bigDecimal50 = new BigDecimal((Math.random() * 2) + 50, mathContext);
+            BigDecimal bigDecimal70 = new BigDecimal((Math.random() * 2) + 70, mathContext);
+            BigDecimal bigDecimal150 = new BigDecimal((Math.random() * 2) + 150, mathContext);
 
             do {
-                Order sellOrder1 = new Order(OrderSide.SELL, new Equity("LRCX"), new BigDecimal(String.valueOf( ((int) (Math.random()*2)+50) )), (int) (Math.random()*100+1), 1L);
-                Order buyOrder1  = new Order(OrderSide.BUY, new Equity("LRCX"), new BigDecimal(String.valueOf( ((int) (Math.random()*2)+50) )), (int) (Math.random()*100+1), 2L);
-                Order sellOrder2 = new Order(OrderSide.SELL, new Equity("BA"), new BigDecimal(String.valueOf( ((int) (Math.random()*2)+70) )), (int) (Math.random()*100+1), 1L);
-                Order buyOrder2  = new Order(OrderSide.BUY, new Equity("BA"), new BigDecimal(String.valueOf( ((int) (Math.random()*2)+70) )), (int) (Math.random()*100+1), 2L);
-                Order sellOrder3 = new Order(OrderSide.SELL, new Equity("MU"), new BigDecimal(String.valueOf( ((int) (Math.random()*2)+150) )), (int) (Math.random()*100+1), 1L);
-                Order buyOrder3  = new Order(OrderSide.BUY, new Equity("MU"), new BigDecimal(String.valueOf( ((int) (Math.random()*2)+150) )), (int) (Math.random()*100+1), 2L);
+                Order sellOrder1 = new Order(OrderSide.SELL, new Equity("LRCX"), bigDecimal50, (int) (Math.random()*100+1), 1L);
+                Order buyOrder1  = new Order(OrderSide.BUY, new Equity("LRCX"), bigDecimal50, (int) (Math.random()*100+1), 2L);
+                Order sellOrder2 = new Order(OrderSide.SELL, new Equity("BA"), bigDecimal70, (int) (Math.random()*100+1), 1L);
+                Order buyOrder2  = new Order(OrderSide.BUY, new Equity("BA"), bigDecimal70, (int) (Math.random()*100+1), 2L);
+                Order sellOrder3 = new Order(OrderSide.SELL, new Equity("MU"), bigDecimal150, (int) (Math.random()*100+1), 1L);
+                Order buyOrder3  = new Order(OrderSide.BUY, new Equity("MU"), bigDecimal150, (int) (Math.random()*100+1), 2L);
 
                 marketQueue.addItem(sellOrder1);
 //                Thread.sleep(timeInterval);

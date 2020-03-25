@@ -46,34 +46,37 @@ public class Order implements Cloneable {
         this.userId = userId;
     }
 
-    public Execution trade(Order buyOrder, Specification<BigDecimal> priceSpecification) throws OrderInvalidStatusException, OrdersDoesNotMatchException {
+    public Execution trade(Order buyOrder, Specification<BigDecimal> priceSpecification) { //throws OrderInvalidStatusException, OrdersDoesNotMatchException {
         if(priceSpecification.isSatisfiedBy(getPrice())) {
             int totalQuantity = Math.min(getRemainingQuantity(), buyOrder.getRemainingQuantity());
 
             Execution execution = new Execution(getId(), buyOrder.getId(), totalQuantity, getPrice());
 
-            buyOrder.addExecution(execution);
-            addExecution(execution);
+            if(buyOrder.addExecution(execution)) {
+                addExecution(execution);
+            }
 
             return execution;
         }
         else {
-            throw new OrdersDoesNotMatchException(String.format("Orders doesn't have a match: but price %s, sell price %s", buyOrder.getPrice(), getPrice()));
+            return null;
+            //throw new OrdersDoesNotMatchException(String.format("Orders doesn't have a match: but price %s, sell price %s", buyOrder.getPrice(), getPrice()));
         }
     }
 
-    private void addExecution(Execution execution) throws OrderInvalidStatusException {
+    private boolean addExecution(Execution execution) { //throws OrderInvalidStatusException {
         if(status == OrderStatus.CANCELED) {
-            throw new OrderInvalidStatusException("Order is " + status);
+            return false; //throw new OrderInvalidStatusException("Order is " + status);
         }
 
         if(status == OrderStatus.EXECUTED) {
-            throw new OrderInvalidStatusException("Order is already " + status);
+            return false; //throw new OrderInvalidStatusException("Order is already " + status);
         }
 
         // TODO: throw order executed event
         executions.add(execution);
         updateStatus();
+        return true;
     }
 
     private void updateStatus() {

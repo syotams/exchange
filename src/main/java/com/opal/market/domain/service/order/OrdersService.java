@@ -65,31 +65,28 @@ public class OrdersService {
     public List<Order> matchAndExecute(Order buyOrder, List<Order> sellOrders, PriceSpecification priceSpecification) {
         List<Order> executedOrders = new ArrayList<>();
         int sellIndex = 0;
-        int accumulatedQuantity = 0;
-        Execution execution;
 
         priceSpecification.setBuyPrice(buyOrder.getPrice());
 
-        try {
-            while ((accumulatedQuantity < buyOrder.getRemainingQuantity()) && (sellIndex < sellOrders.size())) {
+//        try {
+            while ((0 < buyOrder.getRemainingQuantity()) && (sellIndex < sellOrders.size())) {
                 Order sellOrder = sellOrders.get(sellIndex);
 
-                execution = sellOrder.trade(buyOrder, priceSpecification);
+                sellOrder.trade(buyOrder, priceSpecification);
 
                 if (sellOrder.getStatus() == OrderStatus.EXECUTED) {
                     executedOrders.add(sellOrder);
                     log.info("OrderExecuted:" + sellOrder);
                 }
-                accumulatedQuantity += execution.getQuantity();
                 sellIndex++;
             }
-        }
-        catch (OrdersDoesNotMatchException e) {}
-        catch (OrderInvalidStatusException e) {
-            log.error("OrderInvalidStatusException thrown");
-            sellOrders.remove(sellIndex);
-            matchAndExecute(buyOrder, sellOrders, priceSpecification);
-        }
+//        }
+//        catch (OrdersDoesNotMatchException e) {}
+//        catch (OrderInvalidStatusException e) {
+//            log.error("OrderInvalidStatusException thrown");
+//            sellOrders.remove(sellIndex);
+//            matchAndExecute(buyOrder, sellOrders, priceSpecification);
+//        }
 
         return executedOrders;
     }

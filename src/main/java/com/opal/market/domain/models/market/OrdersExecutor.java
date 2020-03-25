@@ -54,7 +54,7 @@ public class OrdersExecutor implements Callable<Integer> {
                 totalExecuted += executedOrders.size();
                 log.info("OrderExecuted:" + buyOrder);
             }
-            else {
+            else if(buyOrder.getStatus() != OrderStatus.EXECUTED) {
                 break;
             }
         }

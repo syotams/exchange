@@ -19,7 +19,7 @@ public class IntervalMarketQueueThread extends AbstractQueueThread<Order> implem
 
     private final Market market;
 
-    private BlockingQueue<NonBlockingTask> tasks = new ArrayBlockingQueue<>(5);
+    private BlockingQueue<NonBlockingTask> tasks = new ArrayBlockingQueue<>(100);
 
 
     public IntervalMarketQueueThread(@Autowired Market market) {
