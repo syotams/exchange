@@ -4,7 +4,7 @@ import com.opal.market.domain.models.equity.Equity;
 import com.opal.market.domain.models.market.OrderBook;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderSide;
-import com.opal.market.domain.service.order.OrdersExecutor;
+import com.opal.market.domain.models.market.OrdersExecutor;
 import com.opal.market.domain.service.order.OrdersService;
 import org.junit.jupiter.api.Test;
 
@@ -35,7 +35,8 @@ public class OrdersExecutorTest {
         orderBook.addOrder(buyOrder3);
 
         OrdersExecutor ordersExecutor = new OrdersExecutor(new OrdersService());
-        ordersExecutor.execute(orderBook);
+        ordersExecutor.setOrderBook(orderBook);
+        ordersExecutor.call();
 
         assertEquals(1, orderBook.getBuyBook().size());
     }
@@ -61,7 +62,8 @@ public class OrdersExecutorTest {
         orderBook.addOrder(buyOrder3);
 
         OrdersExecutor ordersExecutor = new OrdersExecutor(new OrdersService());
-        ordersExecutor.execute(orderBook);
+        ordersExecutor.setOrderBook(orderBook);
+        ordersExecutor.call();
 
         orderBook.print();
         assertEquals(0, orderBook.getBuyBook().size());

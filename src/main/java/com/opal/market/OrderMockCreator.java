@@ -21,7 +21,7 @@ public class OrderMockCreator implements Callable<Long> {
         long startTime = System.currentTimeMillis();
 
         try {
-            int i = 100000;
+            int i = 16667;
             int timeInterval = 10;
 
             do {
@@ -48,9 +48,9 @@ public class OrderMockCreator implements Callable<Long> {
 //                Thread.sleep(timeInterval);
 
                 marketQueue.addItem(buyOrder3);
-                Thread.sleep(timeInterval);
+//                Thread.sleep(timeInterval);
             }
-            while (i-- > 0);
+            while (i-- >= 0);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

@@ -4,17 +4,12 @@ import com.opal.market.application.market.IntervalMarketQueueThread;
 import com.opal.market.application.market.NonBlockingTask;
 import com.opal.market.domain.models.PriceSpecification;
 import com.opal.market.domain.models.market.Market;
-import com.opal.market.domain.models.market.OrderBook;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderSide;
-import com.opal.market.domain.service.order.OrdersExecutor;
+import com.opal.market.domain.models.market.OrdersExecutor;
 import com.opal.market.domain.service.order.OrdersService;
 
-import java.time.format.SignStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,11 +23,11 @@ public class MarketMockApplication {
 
     private IntervalMarketQueueThread marketQueue;
 
+    private int sleepTime = 1000;
 
     public MarketMockApplication() {
         ordersService = new OrdersService();
-        OrdersExecutor ordersExecutor = new OrdersExecutor(ordersService);
-        marketQueue = new IntervalMarketQueueThread(new Market(ordersExecutor));
+        marketQueue = new IntervalMarketQueueThread(new Market(ordersService));
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -57,26 +52,28 @@ public class MarketMockApplication {
         executorService.awaitTermination(20, TimeUnit.SECONDS);
         elapsedTime = System.currentTimeMillis() - startTime;
 
-        System.out.println("--------------------------- Elapsed time: " + elapsedTime);
+        System.out.println("--------------------------- Adding " + marketQueue.getTotalReceived() + " orders elapsed time: " + (elapsedTime));
 
-        boolean matches;
+        int matches;
         int i=0;
-        List<Order> buyBook;
-        List<Order> sellBook;
+
+        System.out.println("--------------------------- Waiting for orders to be executed ----------");
 
         do {
-            marketQueue.stats();
+            matches = 0;
 
-            marketQueue.join(1000);
+            marketQueue.join(sleepTime);
 
-            NonBlockingTask<Order[]> task = marketQueue.getOrderBook("LRCX", OrderSide.BUY);
-            buyBook = Arrays.asList(task.get());
+            NonBlockingTask<Map<String, Boolean>> mapNonBlockingTask = marketQueue.hasMatch();
+            Map<String, Boolean> stringBooleanMap = mapNonBlockingTask.get();
+            Set<String> symbols = stringBooleanMap.keySet();
 
-            task = marketQueue.getOrderBook("LRCX", OrderSide.SELL);
-            sellBook = Arrays.asList(task.get());
-
-            matches = ordersService.hasMatch(buyBook, sellBook, new PriceSpecification());
-        } while (matches && i++<300);
+            for (String symbol : symbols) {
+                if(stringBooleanMap.get(symbol)) {
+                    matches++;
+                }
+            }
+        } while (matches > 0 && i++<300);
 
         marketQueue.stats();
         marketQueue.setRunning(false);
@@ -92,15 +89,16 @@ public class MarketMockApplication {
                 int last = 0;
 
                 do {
-                    sleep(5000);
+                    sleep(sleepTime);
 
                     marketQueue.stats();
 
                     int totalReceived = marketQueue.getTotalHandled();
-                    ordersPerSecond.add(totalReceived - last);
-                    last = totalReceived;
 
-                    System.out.println(String.format("Market handled %d orders last 5 second", last));
+                    if(totalReceived > 0) {
+                        ordersPerSecond.add(totalReceived - last);
+                        last = totalReceived;
+                    }
                 } while (marketQueue.isRunning());
             } catch (InterruptedException e) {
                 e.printStackTrace();

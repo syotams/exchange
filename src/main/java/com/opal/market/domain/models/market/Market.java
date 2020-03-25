@@ -1,24 +1,42 @@
 package com.opal.market.domain.models.market;
 
+import com.opal.market.domain.models.PriceSpecification;
 import com.opal.market.domain.models.order.Order;
-import com.opal.market.domain.service.order.OrdersExecutor;
+import com.opal.market.domain.service.order.OrdersService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 @Component
 public class Market {
 
-    private Map<String, OrderBook> books = new HashMap<>();
+    private Logger log = LoggerFactory.getLogger(Market.class);
 
-    private OrdersExecutor ordersExecutor;
+    private final ExecutorService executorService;
+
+    private final OrdersService ordersService;
+
+    private final Map<String, OrderBook> books = new HashMap<>();
+
+    private CompletionService<Integer> executor;
+
+    private List<OrdersExecutor> ordersExecutors = new ArrayList<>();
 
     private int totalExecuted;
 
+    private boolean isExecuting;
 
-    public Market(@Autowired OrdersExecutor ordersExecutor) {
-        this.ordersExecutor = ordersExecutor;
+    private boolean bookInitiated;
+
+
+    public Market(@Autowired OrdersService ordersService) {
+        this.ordersService = ordersService;
+        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        executor = new ExecutorCompletionService<>(executorService);
     }
 
     public void addOrder(Order order) {
@@ -34,13 +52,11 @@ public class Market {
     private OrderBook getOrderBook(String symbol) {
         if(!books.containsKey(symbol)) {
             books.put(symbol, new OrderBook());
+            ordersExecutors.add(new OrdersExecutor(ordersService));
+            bookInitiated = true;
         }
 
         return books.get(symbol);
-    }
-
-    protected Map<String, OrderBook> getBooks() {
-        return books;
     }
 
     public String[] stats() {
@@ -50,10 +66,12 @@ public class Market {
         int i=0;
 
         for (String symbol : symbols) {
-            result[i++] = String.format("%s has %d in buy book and %d in sell book", symbol, books.get(symbol).getBuyBook().size(), books.get(symbol).getSellBook().size());
+            //result[i++] = String.format("%s has %d in buy book and %d in sell book", symbol, books.get(symbol).getBuyBookSize(), books.get(symbol).getSellBookSize());
+            result[i++] = String.format("%d, %d", books.get(symbol).getBuyBookSize(), books.get(symbol).getSellBookSize());
         }
 
-        result[i] = String.format("Total %d orders executed buy and sell", getTotalExecuted());
+        //result[i] = String.format("Total %d orders executed buy and sell", getTotalExecuted());
+        result[i] = String.valueOf(getTotalExecuted());
 
         return result;
     }
@@ -67,11 +85,50 @@ public class Market {
     }
 
     public void execute() {
-        totalExecuted += ordersExecutor.execute(books);
+        if(!bookInitiated || isExecuting) {
+            return;
+        }
+
+        Set<String> symbols = books.keySet();
+
+        int index = 0;
+        isExecuting = true;
+
+        for (String symbol : symbols) {
+            ordersExecutors.get(index).setOrderBook(books.get(symbol));
+            executor.submit(ordersExecutors.get(index++));
+        }
+
+        int totalBooksExecuted = 0;
+
+        try {
+            while (isExecuting) {
+                Future<Integer> future = executor.take();
+                totalExecuted += future.get(10000, TimeUnit.MILLISECONDS);
+
+                if(++totalBooksExecuted >= books.size()) {
+                    isExecuting = false;
+                }
+            }
+        }
+        catch (InterruptedException | ExecutionException | TimeoutException e) {
+            log.error(e.getMessage());
+        } finally {
+            isExecuting = false;
+        }
     }
 
     public Map<String, Boolean> hasMatch() {
-        return ordersExecutor.hasMatch(books);
+        Set<String> symbols = books.keySet();
+        Map<String, Boolean> result = new HashMap<>();
+        PriceSpecification priceSpecification = new PriceSpecification();
+
+        for (String symbol : symbols) {
+            OrderBook book = books.get(symbol);
+            result.put(symbol, ordersService.hasMatch(book.getBuyBook(), book.getSellBook(), priceSpecification));
+        }
+
+        return result;
     }
 
     public Order[] getSellBook(String symbol) {
@@ -82,16 +139,21 @@ public class Market {
         return cloneOrders(getOrderBook(symbol).getBuyBook());
     }
 
-    private Order[] cloneOrders(List<Order> sellBook) {
-        int total = Math.min(10, sellBook.size());
+    private Order[] cloneOrders(List<Order> book) {
+        int total = Math.min(10, book.size());
 
         Order[] orders = new Order[total];
 
         for (int i=0; i<total; i++) {
-            orders[i] = sellBook.get(i);
+            orders[i] = book.get(i);
         }
 
         return orders;
+    }
+
+    public void shutDown() throws InterruptedException {
+        executorService.shutdownNow();
+        executorService.awaitTermination(1000, TimeUnit.MILLISECONDS);
     }
 
     public int getTotalExecuted() {

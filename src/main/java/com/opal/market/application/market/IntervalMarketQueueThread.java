@@ -19,7 +19,7 @@ public class IntervalMarketQueueThread extends AbstractQueueThread<Order> implem
 
     private final Market market;
 
-    private BlockingQueue<NonBlockingTask> tasks = new ArrayBlockingQueue<>(10);
+    private BlockingQueue<NonBlockingTask> tasks = new ArrayBlockingQueue<>(5);
 
 
     public IntervalMarketQueueThread(@Autowired Market market) {
@@ -48,6 +48,11 @@ public class IntervalMarketQueueThread extends AbstractQueueThread<Order> implem
             }
         }
 
+        try {
+            market.shutDown();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         System.out.println("------------- Market closed and received " + totalReceived + " and handled " + totalHandled + " orders -----------");
         System.out.println(Arrays.toString(market.stats()));
     }
