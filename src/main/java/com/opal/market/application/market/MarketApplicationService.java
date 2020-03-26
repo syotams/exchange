@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 @Service
@@ -38,5 +39,12 @@ public class MarketApplicationService implements IMarketApplicationService {
             log.error(e.getMessage());
             return null;
         }
+    }
+
+    public Map<String, String> stats() {
+        Map<String, String> stats = marketQueue.stats().get();
+        stats.put("totalReceived", String.valueOf(marketQueue.getTotalReceived()));
+        stats.put("totalHandled", String.valueOf(marketQueue.getTotalHandled()));
+        return stats;
     }
 }

@@ -47,7 +47,8 @@ public class Order implements Cloneable {
     }
 
     public Execution trade(Order buyOrder, Specification<BigDecimal> priceSpecification)
-            throws OrderInvalidStatusException, OrdersDoesNotMatchException {
+            throws OrderInvalidStatusException
+    {
         if(priceSpecification.isSatisfiedBy(getPrice())) {
             int totalQuantity = Math.min(getRemainingQuantity(), buyOrder.getRemainingQuantity());
 
@@ -60,7 +61,7 @@ public class Order implements Cloneable {
             return execution;
         }
         else {
-            throw new OrdersDoesNotMatchException(String.format("Orders doesn't have a match: but price %s, sell price %s", buyOrder.getPrice(), getPrice()));
+            return null;
         }
     }
 

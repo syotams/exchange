@@ -23,7 +23,7 @@ public class OrderTest {
             sellOrder.trade(buyOrder, priceSpecification);
 
             assertEquals(10, sellOrder.getExecutedQuantity());
-        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
+        } catch (OrderInvalidStatusException e) {
             e.printStackTrace();
         }
     }
@@ -37,8 +37,8 @@ public class OrderTest {
 
         try {
             assertNull(sellOrder.trade(buyOrder, priceSpecification));
-        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
-            assertTrue(e instanceof OrdersDoesNotMatchException);
+        } catch (OrderInvalidStatusException e) {
+            e.printStackTrace();
         }
     }
 
@@ -63,7 +63,7 @@ public class OrderTest {
             assertEquals(80, orders.get(0).getExecutedQuantity());
             assertEquals(20, orders.get(1).getExecutedQuantity());
             assertEquals(10, orders.get(2).getExecutedQuantity());
-        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
+        } catch (OrderInvalidStatusException e) {
             e.printStackTrace();
         }
     }

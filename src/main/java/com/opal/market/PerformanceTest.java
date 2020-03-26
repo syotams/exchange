@@ -2,11 +2,7 @@ package com.opal.market;
 
 import com.opal.market.application.market.IntervalMarketQueueThread;
 import com.opal.market.application.market.NonBlockingTask;
-import com.opal.market.domain.models.PriceSpecification;
 import com.opal.market.domain.models.market.Market;
-import com.opal.market.domain.models.order.Order;
-import com.opal.market.domain.models.order.OrderSide;
-import com.opal.market.domain.models.market.OrdersExecutor;
 import com.opal.market.domain.service.order.OrdersService;
 
 import java.util.*;
@@ -14,34 +10,34 @@ import java.util.concurrent.*;
 
 import static java.lang.Thread.sleep;
 
-public class MarketMockApplication {
+public class PerformanceTest {
 
     private final OrdersService ordersService;
 
-    private IntervalMarketQueueThread marketQueue;
+    private IntervalMarketQueueThread intervalMarketQueueThread;
 
     private int sleepTime = 1000;
 
-    private int numberOfConcurrentFeeds = 100;
-
-    public MarketMockApplication() {
+    public PerformanceTest() {
         ordersService = new OrdersService();
-        marketQueue = new IntervalMarketQueueThread(new Market(ordersService));
+        intervalMarketQueueThread = new IntervalMarketQueueThread(new Market(ordersService));
     }
 
     public static void main(String[] args) throws InterruptedException {
-        new MarketMockApplication().run();
+        new PerformanceTest().run();
     }
 
     public void run() throws InterruptedException {
         long startTime = System.currentTimeMillis();
-        marketQueue.start();
+        intervalMarketQueueThread.start();
         startMetrics();
 
         List<Callable<Long>> tasks = new ArrayList<>();
 
-        for(int i=0; i<numberOfConcurrentFeeds; i++) {
-            tasks.add(new OrderMockCreator(marketQueue));
+        int numberOfConcurrentFeeds = 3;
+
+        for(int i = 0; i< numberOfConcurrentFeeds; i++) {
+            tasks.add(new OrderMockCreator(intervalMarketQueueThread));
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(tasks.size());
@@ -72,7 +68,7 @@ public class MarketMockApplication {
 
         elapsedTime = System.currentTimeMillis() - startTime;
 
-        System.out.println("--------------------------- Adding " + marketQueue.getTotalReceived() + " orders elapsed time: " + (elapsedTime));
+        System.out.println("--------------------------- Adding " + intervalMarketQueueThread.getTotalReceived() + " orders elapsed time: " + (elapsedTime));
 
         int matches;
         int i=0;
@@ -82,9 +78,9 @@ public class MarketMockApplication {
         do {
             matches = 0;
 
-            marketQueue.join(sleepTime);
+            intervalMarketQueueThread.join(sleepTime);
 
-            NonBlockingTask<Map<String, Boolean>> mapNonBlockingTask = marketQueue.hasMatch();
+            NonBlockingTask<Map<String, Boolean>> mapNonBlockingTask = intervalMarketQueueThread.hasMatch();
             Map<String, Boolean> stringBooleanMap = mapNonBlockingTask.get();
             Set<String> symbols = stringBooleanMap.keySet();
 
@@ -95,8 +91,8 @@ public class MarketMockApplication {
             }
         } while (matches > 0);
 
-        marketQueue.stats();
-        marketQueue.setRunning(false);
+        System.out.println(intervalMarketQueueThread.stats().get());
+        intervalMarketQueueThread.setRunning(false);
 
         System.out.println("--------------------------- Elapsed time: " + (System.currentTimeMillis() - startTime));
     }
@@ -111,20 +107,20 @@ public class MarketMockApplication {
                 do {
                     sleep(sleepTime);
 
-                    marketQueue.stats();
+                    System.out.println(intervalMarketQueueThread.stats().get());
 
-                    int totalReceived = marketQueue.getTotalHandled();
+                    int totalReceived = intervalMarketQueueThread.getTotalHandled();
 
                     if(totalReceived > 0) {
                         ordersPerSecond.add(totalReceived - last);
                         last = totalReceived;
                     }
-                } while (marketQueue.isRunning());
+                } while (intervalMarketQueueThread.isRunning());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-            System.out.println("------------- Market received " + marketQueue.getTotalReceived() + " orders -----------");
+//            System.out.println("------------- Market received " + marketQueue.getTotalReceived() + " orders -----------");
             System.out.println(ordersPerSecond);
         }).start();
     }

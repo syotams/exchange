@@ -59,18 +59,18 @@ public class Market {
         return books.get(symbol);
     }
 
-    public String[] stats() {
+    public Map<String, String> stats() {
         Set<String> symbols = books.keySet();
-        String[] result = new String[symbols.size() + 1];
 
-        int i=0;
+        Map<String, String> stats = new HashMap<>();
 
         for (String symbol : symbols) {
-            result[i++] = String.format("%d, %d", books.get(symbol).getBuyBookSize(), books.get(symbol).getSellBookSize());
+            stats.put(symbol, String.format("%d, %d", books.get(symbol).getBuyBookSize(), books.get(symbol).getSellBookSize()));
         }
 
-        result[i] = String.valueOf(getTotalExecuted());
-        return result;
+        stats.put("totalExecuted", String.valueOf(getTotalExecuted()));
+
+        return stats;
     }
 
     public void print() {

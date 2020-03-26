@@ -36,7 +36,7 @@ public class OrdersService {
         return matched;
     }
 
-    private List<Order> execute(Order buyOrder, List<Order> sellOrders, PriceSpecification priceSpecification) throws OrdersDoesNotMatchException, OrderInvalidStatusException {
+    private List<Order> execute(Order buyOrder, List<Order> sellOrders, PriceSpecification priceSpecification) throws OrderInvalidStatusException {
         List<Order> executedOrders = new ArrayList<>();
 
         for (Order sellOrder : sellOrders) {
@@ -72,7 +72,11 @@ public class OrdersService {
             while ((0 < buyOrder.getRemainingQuantity()) && (sellIndex < sellOrders.size())) {
                 Order sellOrder = sellOrders.get(sellIndex);
 
-                sellOrder.trade(buyOrder, priceSpecification);
+                Execution execution = sellOrder.trade(buyOrder, priceSpecification);
+
+                if(null==execution) {
+                    break;
+                }
 
                 if (sellOrder.getStatus() == OrderStatus.EXECUTED) {
                     executedOrders.add(sellOrder);
@@ -81,7 +85,6 @@ public class OrdersService {
                 sellIndex++;
             }
         }
-        catch (OrdersDoesNotMatchException e) {}
         catch (OrderInvalidStatusException e) {
             log.error("OrderInvalidStatusException thrown");
             sellOrders.remove(sellIndex);

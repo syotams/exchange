@@ -6,12 +6,11 @@ import com.opal.market.domain.models.order.OrderSide;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.Null;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 
 @Component
@@ -54,7 +53,7 @@ public class IntervalMarketQueueThread extends AbstractQueueThread<Order> implem
             e.printStackTrace();
         }
         System.out.println("------------- Market closed and received " + totalReceived + " and handled " + totalHandled + " orders -----------");
-        System.out.println(Arrays.toString(market.stats()));
+        System.out.println(market.stats());
     }
 
     @Override
@@ -72,11 +71,8 @@ public class IntervalMarketQueueThread extends AbstractQueueThread<Order> implem
         return task;
     }
 
-    public NonBlockingTask<Null> stats() {
-        NonBlockingTask<Null> task = new NonBlockingTask<Null>(() -> {
-            System.out.println(Arrays.toString(market.stats()));
-            return null;
-        });
+    public NonBlockingTask<Map<String, String>> stats() {
+        NonBlockingTask<Map<String, String>> task = new NonBlockingTask<>(market::stats);
         tasks.add(task);
         return task;
     }
