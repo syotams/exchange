@@ -10,10 +10,7 @@ import com.opal.market.domain.models.market.OrdersExecutor;
 import com.opal.market.domain.service.order.OrdersService;
 
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static java.lang.Thread.sleep;
 
@@ -24,6 +21,8 @@ public class MarketMockApplication {
     private IntervalMarketQueueThread marketQueue;
 
     private int sleepTime = 1000;
+
+    private int numberOfConcurrentFeeds = 100;
 
     public MarketMockApplication() {
         ordersService = new OrdersService();
@@ -40,16 +39,37 @@ public class MarketMockApplication {
         startMetrics();
 
         List<Callable<Long>> tasks = new ArrayList<>();
-        tasks.add(new OrderMockCreator(marketQueue));
-//        tasks.add(new OrderMockCreator(marketQueue));
-//        tasks.add(new OrderMockCreator(marketQueue));
+
+        for(int i=0; i<numberOfConcurrentFeeds; i++) {
+            tasks.add(new OrderMockCreator(marketQueue));
+        }
+
         ExecutorService executorService = Executors.newFixedThreadPool(tasks.size());
-        executorService.invokeAll(tasks);
+        CompletionService<Long> completionService = new ExecutorCompletionService<>(executorService);
+        for (Callable<Long> task : tasks) {
+            completionService.submit(task);
+        }
+
+        boolean isExecuting = true;
+        int totalBooksExecuted = 0;
+
+        try {
+            while (isExecuting) {
+                Future<Long> future = completionService.take();
+                future.get();
+
+                if(++totalBooksExecuted >= tasks.size()) {
+                    isExecuting = false;
+                }
+            }
+        }
+        catch (InterruptedException | ExecutionException e) {}
+        finally {
+            executorService.shutdown();
+        }
 
         long elapsedTime = 0;
 
-        executorService.shutdown();
-        executorService.awaitTermination(20, TimeUnit.SECONDS);
         elapsedTime = System.currentTimeMillis() - startTime;
 
         System.out.println("--------------------------- Adding " + marketQueue.getTotalReceived() + " orders elapsed time: " + (elapsedTime));
@@ -73,7 +93,7 @@ public class MarketMockApplication {
                     matches++;
                 }
             }
-        } while (matches > 0 && i++<300);
+        } while (matches > 0);
 
         marketQueue.stats();
         marketQueue.setRunning(false);

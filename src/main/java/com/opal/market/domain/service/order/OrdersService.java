@@ -68,7 +68,7 @@ public class OrdersService {
 
         priceSpecification.setBuyPrice(buyOrder.getPrice());
 
-//        try {
+        try {
             while ((0 < buyOrder.getRemainingQuantity()) && (sellIndex < sellOrders.size())) {
                 Order sellOrder = sellOrders.get(sellIndex);
 
@@ -80,13 +80,13 @@ public class OrdersService {
                 }
                 sellIndex++;
             }
-//        }
-//        catch (OrdersDoesNotMatchException e) {}
-//        catch (OrderInvalidStatusException e) {
-//            log.error("OrderInvalidStatusException thrown");
-//            sellOrders.remove(sellIndex);
-//            matchAndExecute(buyOrder, sellOrders, priceSpecification);
-//        }
+        }
+        catch (OrdersDoesNotMatchException e) {}
+        catch (OrderInvalidStatusException e) {
+            log.error("OrderInvalidStatusException thrown");
+            sellOrders.remove(sellIndex);
+            matchAndExecute(buyOrder, sellOrders, priceSpecification);
+        }
 
         return executedOrders;
     }

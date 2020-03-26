@@ -35,7 +35,7 @@ public class Market {
 
     public Market(@Autowired OrdersService ordersService) {
         this.ordersService = ordersService;
-        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()-2);
         executor = new ExecutorCompletionService<>(executorService);
     }
 
@@ -66,13 +66,10 @@ public class Market {
         int i=0;
 
         for (String symbol : symbols) {
-            //result[i++] = String.format("%s has %d in buy book and %d in sell book", symbol, books.get(symbol).getBuyBookSize(), books.get(symbol).getSellBookSize());
             result[i++] = String.format("%d, %d", books.get(symbol).getBuyBookSize(), books.get(symbol).getSellBookSize());
         }
 
-        //result[i] = String.format("Total %d orders executed buy and sell", getTotalExecuted());
         result[i] = String.valueOf(getTotalExecuted());
-
         return result;
     }
 

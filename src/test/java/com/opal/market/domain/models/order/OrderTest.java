@@ -19,13 +19,13 @@ public class OrderTest {
         PriceSpecification priceSpecification = new PriceSpecification();
         priceSpecification.setBuyPrice(buyOrder.getPrice());
 
-//        try {
+        try {
             sellOrder.trade(buyOrder, priceSpecification);
 
             assertEquals(10, sellOrder.getExecutedQuantity());
-//        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
-//            e.printStackTrace();
-//        }
+        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -35,11 +35,11 @@ public class OrderTest {
         PriceSpecification priceSpecification = new PriceSpecification();
         priceSpecification.setBuyPrice(buyOrder.getPrice());
 
-//        try {
+        try {
             assertNull(sellOrder.trade(buyOrder, priceSpecification));
-//        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
-//            assertTrue(e instanceof OrdersDoesNotMatchException);
-//        }
+        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
+            assertTrue(e instanceof OrdersDoesNotMatchException);
+        }
     }
 
     @Test
@@ -55,7 +55,7 @@ public class OrderTest {
         PriceSpecification priceSpecification = new PriceSpecification();
         priceSpecification.setBuyPrice(buyOrder.getPrice());
 
-//        try {
+        try {
             for (Order sellOrder : orders) {
                 sellOrder.trade(buyOrder, priceSpecification);
             }
@@ -63,8 +63,8 @@ public class OrderTest {
             assertEquals(80, orders.get(0).getExecutedQuantity());
             assertEquals(20, orders.get(1).getExecutedQuantity());
             assertEquals(10, orders.get(2).getExecutedQuantity());
-//        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
-//            e.printStackTrace();
-//        }
+        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -46,7 +46,8 @@ public class Order implements Cloneable {
         this.userId = userId;
     }
 
-    public Execution trade(Order buyOrder, Specification<BigDecimal> priceSpecification) { //throws OrderInvalidStatusException, OrdersDoesNotMatchException {
+    public Execution trade(Order buyOrder, Specification<BigDecimal> priceSpecification)
+            throws OrderInvalidStatusException, OrdersDoesNotMatchException {
         if(priceSpecification.isSatisfiedBy(getPrice())) {
             int totalQuantity = Math.min(getRemainingQuantity(), buyOrder.getRemainingQuantity());
 
@@ -59,18 +60,17 @@ public class Order implements Cloneable {
             return execution;
         }
         else {
-            return null;
-            //throw new OrdersDoesNotMatchException(String.format("Orders doesn't have a match: but price %s, sell price %s", buyOrder.getPrice(), getPrice()));
+            throw new OrdersDoesNotMatchException(String.format("Orders doesn't have a match: but price %s, sell price %s", buyOrder.getPrice(), getPrice()));
         }
     }
 
-    private boolean addExecution(Execution execution) { //throws OrderInvalidStatusException {
+    private boolean addExecution(Execution execution) throws OrderInvalidStatusException {
         if(status == OrderStatus.CANCELED) {
-            return false; //throw new OrderInvalidStatusException("Order is " + status);
+            throw new OrderInvalidStatusException("Order is " + status);
         }
 
         if(status == OrderStatus.EXECUTED) {
-            return false; //throw new OrderInvalidStatusException("Order is already " + status);
+            throw new OrderInvalidStatusException("Order is already " + status);
         }
 
         // TODO: throw order executed event
