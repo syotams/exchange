@@ -36,7 +36,7 @@ public class OrdersService {
         return matched;
     }
 
-    private List<Order> execute(Order buyOrder, List<Order> sellOrders, PriceSpecification priceSpecification) throws OrdersDoesNotMatchException, OrderInvalidStatusException {
+    private List<Order> execute(Order buyOrder, List<Order> sellOrders, PriceSpecification priceSpecification) throws OrderInvalidStatusException {
         List<Order> executedOrders = new ArrayList<>();
 
         for (Order sellOrder : sellOrders) {
@@ -65,30 +65,30 @@ public class OrdersService {
     public List<Order> matchAndExecute(Order buyOrder, List<Order> sellOrders, PriceSpecification priceSpecification) {
         List<Order> executedOrders = new ArrayList<>();
         int sellIndex = 0;
-        int accumulatedQuantity = 0;
-        Execution execution;
 
         priceSpecification.setBuyPrice(buyOrder.getPrice());
 
         try {
-            while ((accumulatedQuantity < buyOrder.getRemainingQuantity()) && (sellIndex < sellOrders.size())) {
+            while ((0 < buyOrder.getRemainingQuantity()) && (sellIndex < sellOrders.size())) {
                 Order sellOrder = sellOrders.get(sellIndex);
 
-                execution = sellOrder.trade(buyOrder, priceSpecification);
+                Execution execution = sellOrder.trade(buyOrder, priceSpecification);
+
+                if(null==execution) {
+                    break;
+                }
 
                 if (sellOrder.getStatus() == OrderStatus.EXECUTED) {
                     executedOrders.add(sellOrder);
                     log.info("OrderExecuted:" + sellOrder);
-//                    log.info(sellOrder.getExecutions());
                 }
-                accumulatedQuantity += execution.getQuantity();
                 sellIndex++;
             }
         }
-        catch (OrdersDoesNotMatchException e) {}
         catch (OrderInvalidStatusException e) {
-//            sellOrders.remove(sellIndex);
-//            matchAndExecute(buyOrder, sellOrders);
+            log.error("OrderInvalidStatusException thrown");
+            sellOrders.remove(sellIndex);
+            matchAndExecute(buyOrder, sellOrders, priceSpecification);
         }
 
         return executedOrders;

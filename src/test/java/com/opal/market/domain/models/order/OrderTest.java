@@ -8,8 +8,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class OrderTest {
 
@@ -24,7 +23,7 @@ public class OrderTest {
             sellOrder.trade(buyOrder, priceSpecification);
 
             assertEquals(10, sellOrder.getExecutedQuantity());
-        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
+        } catch (OrderInvalidStatusException e) {
             e.printStackTrace();
         }
     }
@@ -37,9 +36,9 @@ public class OrderTest {
         priceSpecification.setBuyPrice(buyOrder.getPrice());
 
         try {
-            sellOrder.trade(buyOrder, priceSpecification);
-        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
-            assertTrue(e instanceof OrdersDoesNotMatchException);
+            assertNull(sellOrder.trade(buyOrder, priceSpecification));
+        } catch (OrderInvalidStatusException e) {
+            e.printStackTrace();
         }
     }
 
@@ -64,7 +63,7 @@ public class OrderTest {
             assertEquals(80, orders.get(0).getExecutedQuantity());
             assertEquals(20, orders.get(1).getExecutedQuantity());
             assertEquals(10, orders.get(2).getExecutedQuantity());
-        } catch (OrdersDoesNotMatchException | OrderInvalidStatusException e) {
+        } catch (OrderInvalidStatusException e) {
             e.printStackTrace();
         }
     }

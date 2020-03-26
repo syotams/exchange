@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public class Order {
+public class Order implements Cloneable {
 
     private String id;
     
@@ -46,23 +46,26 @@ public class Order {
         this.userId = userId;
     }
 
-    public Execution trade(Order buyOrder, Specification<BigDecimal> priceSpecification) throws OrderInvalidStatusException, OrdersDoesNotMatchException {
+    public Execution trade(Order buyOrder, Specification<BigDecimal> priceSpecification)
+            throws OrderInvalidStatusException
+    {
         if(priceSpecification.isSatisfiedBy(getPrice())) {
             int totalQuantity = Math.min(getRemainingQuantity(), buyOrder.getRemainingQuantity());
 
             Execution execution = new Execution(getId(), buyOrder.getId(), totalQuantity, getPrice());
 
-            buyOrder.addExecution(execution);
-            addExecution(execution);
+            if(buyOrder.addExecution(execution)) {
+                addExecution(execution);
+            }
 
             return execution;
         }
         else {
-            throw new OrdersDoesNotMatchException();
+            return null;
         }
     }
 
-    private void addExecution(Execution execution) throws OrderInvalidStatusException {
+    private boolean addExecution(Execution execution) throws OrderInvalidStatusException {
         if(status == OrderStatus.CANCELED) {
             throw new OrderInvalidStatusException("Order is " + status);
         }
@@ -74,6 +77,7 @@ public class Order {
         // TODO: throw order executed event
         executions.add(execution);
         updateStatus();
+        return true;
     }
 
     private void updateStatus() {
@@ -175,6 +179,20 @@ public class Order {
 
     public List<Execution> getExecutions() {
         return executions;
+    }
+
+    @Override
+    protected Order clone() {
+        Order order;
+
+        try {
+            order = (Order) super.clone();
+        }
+        catch (CloneNotSupportedException e) {
+            order = new Order(side, equity.clone(), new BigDecimal(price.toEngineeringString()), quantity, userId);
+        }
+
+        return order;
     }
 
     @Override

@@ -51,6 +51,14 @@ public class OrderBook {
         return sellBook;
     }
 
+    public int getBuyBookSize() {
+        return buyBook.size();
+    }
+
+    public int getSellBookSize() {
+        return sellBook.size();
+    }
+
     public void print() {
         for (Order order : buyBook) {
             System.out.println(order);

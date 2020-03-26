@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <File>/var/log/personal/demo.log</File>
+        <File>/var/log/personal/market.log</File>
         <encoder>
             <pattern>D:%d{yyyy-MM-dd HH:mm:ss.SSS, UTC}|L:%p|C:%c{1}|F:%F\(%L\)|Fn:%M|T:%thread|R:%X{R} - %m%n</pattern>
         </encoder>
@@ -9,7 +9,7 @@
             <maxFileSize>50MB</maxFileSize>
             <maxHistory>96</maxHistory>
             <totalSizeCap>4GB</totalSizeCap>
-            <FileNamePattern>/var/log/personal/demo.%d{yyyy-MM-dd_HH}.log.%i.gz</FileNamePattern>
+            <FileNamePattern>/var/log/personal/market.%d{yyyy-MM-dd_HH}.log.%i.gz</FileNamePattern>
         </rollingPolicy>
     </appender>
     <appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
@@ -19,11 +19,17 @@
         </encoder>
     </appender>
     <root level="INFO">
-<!--        <appender-ref ref="file"/>-->
+        <!--<appender-ref ref="file"/>-->
         <appender-ref ref="stdout"/>
     </root>
-
-    <logger name="com.opal" level="trace" additivity="false">
+    <root level="ERROR">
+        <appender-ref ref="file"/>
+        <!--<appender-ref ref="stdout"/>-->
+    </root>
+    <!--<logger name="com.opal" level="info" additivity="false">
+        <appender-ref ref="file" />
+    </logger>-->
+    <!--<logger name="com.opal" level="trace" additivity="false">
         <appender-ref ref="stdout" />
-    </logger>
+    </logger>-->
 </configuration>
