@@ -1,6 +1,6 @@
 package com.opal.market.domain.models.market;
 
-import com.opal.market.domain.models.SORT_DIR;
+import com.opal.market.domain.models.SortDir;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderComparator;
 
@@ -24,8 +24,8 @@ public class OrderBook {
 
 
     public OrderBook() {
-        buyBookComparator  = new OrderComparator(SORT_DIR.DESC);
-        sellBookComparator = new OrderComparator(SORT_DIR.ASC);
+        buyBookComparator  = new OrderComparator(SortDir.DESC);
+        sellBookComparator = new OrderComparator(SortDir.ASC);
     }
 
     public void addOrder(Order order) {

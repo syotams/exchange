@@ -1,7 +1,7 @@
 package com.opal.market.domain.models.order;
 
 import com.opal.market.domain.models.equity.Equity;
-import com.opal.market.domain.models.SORT_DIR;
+import com.opal.market.domain.models.SortDir;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -29,7 +29,7 @@ public class OrderComparatorTest {
         expected.add(orders.get(0));
         expected.add(orders.get(2));
 
-        orders.sort(new OrderComparator(SORT_DIR.ASC));
+        orders.sort(new OrderComparator(SortDir.ASC));
 
         assertEquals(orders, expected);
 

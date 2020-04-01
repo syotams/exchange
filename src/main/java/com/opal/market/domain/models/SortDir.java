@@ -1,5 +1,5 @@
 package com.opal.market.domain.models;
 
-public enum SORT_DIR {
+public enum SortDir {
     ASC, DESC
 }
