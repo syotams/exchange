@@ -9,35 +9,53 @@ import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class RestAPIPerformanceTest implements Callable<Integer> {
 
-    private static int numberOfIterations = 10;
+    private static int matrixRows = 9;
 
-    private static int numberOfWorkers = 400;
+    private static int numberOfIterations = 1;
 
-    private static long timeToRun = 60000;
+    private static int numberOfWorkers = 500;
+
+    private static long timeToRun = 10000;
 
     private static boolean useTime = true;
 
 
     public static void main(String[] args) {
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfWorkers);
-        CompletionService<Integer> completionService = new ExecutorCompletionService<>(executorService);
 
-        for(int i=0; i<numberOfWorkers; i++) {
-            completionService.submit(new RestAPIPerformanceTest());
+        System.out.println("------------------------------------------");
+
+        if(useTime) {
+            System.out.println(String.format("Starting test with: %d users for %dms, %d stocks",
+                    numberOfWorkers, timeToRun, matrixRows*matrixRows));
+        }
+        else {
+            System.out.println(String.format("Starting test with: %d users %d iterations, %d stocks",
+                    numberOfWorkers, numberOfIterations, matrixRows*matrixRows));
         }
 
-        long startTime = System.currentTimeMillis();
+        List<RestAPIPerformanceTest> callers = new ArrayList<>();
+
+        for(int i=0; i<numberOfWorkers; i++) {
+            RestAPIPerformanceTest restAPIPerformanceTest = new RestAPIPerformanceTest();
+            callers.add(restAPIPerformanceTest);
+        }
 
         boolean isExecuting = true;
         int totalSent = 0, index = 0;
+        long startTime = System.currentTimeMillis();
 
         try {
+            List<Future<Integer>> futures = executorService.invokeAll(callers);
+
             while (isExecuting) {
-                Future<Integer> future = completionService.take();
+                Future<Integer> future = futures.get(index);
                 totalSent += future.get();
 
                 if(++index >= numberOfWorkers) {
@@ -45,28 +63,32 @@ public class RestAPIPerformanceTest implements Callable<Integer> {
                 }
             }
         }
-        catch (InterruptedException | ExecutionException e) {
-            System.out.println(e.getMessage());
+        catch (ExecutionException e) {
+            System.out.println("Execution exception: " + e.getMessage());
+        }
+        catch (InterruptedException e) {
+            System.out.println("Interrupted exception: " + e.getMessage());
         }
         finally {
+            System.out.println("Finished workers shutting down");
             executorService.shutdown();
         }
-        System.out.println("--------------------------- Elapsed time: " + (System.currentTimeMillis() - startTime) + ", sent " + totalSent);
+        System.out.println("Elapsed time: " + (System.currentTimeMillis() - startTime) + ", sent " + totalSent);
     }
-
 
     @Override
     public Integer call() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        String[] symbols = new String[] {"LRCX", "MU", "BA", "GE", "AIG", "TEVA", "TSLA", "FRSX", "INTC", "BAC"};
+        String[] symbols = getSymbols();
 
-        int i=0;
+        int numberOfExecutions=0;
         boolean shouldRun;
         long startTime = System.currentTimeMillis();
 
         do {
-            HttpURLConnection connection = (HttpURLConnection) new URL("http://localhost:8080/api/v1.0/orders/").openConnection();
+            HttpURLConnection connection =
+                    (HttpURLConnection) new URL("http://localhost:8080/api/v1.0/orders/").openConnection();
 
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
@@ -90,6 +112,7 @@ public class RestAPIPerformanceTest implements Callable<Integer> {
             wr.flush();
 
             int responseCode = connection.getResponseCode();
+            connection.disconnect();
 
             if(responseCode == 200){
                 System.out.println("POST was successful.");
@@ -98,18 +121,34 @@ public class RestAPIPerformanceTest implements Callable<Integer> {
                 System.out.println("Wrong password.");
             }
 
+            numberOfExecutions++;
+
             if(useTime) {
                 shouldRun = (System.currentTimeMillis() - startTime) < timeToRun;
             }
             else {
-                shouldRun = i < numberOfIterations;
+                shouldRun = numberOfExecutions < numberOfIterations;
             }
-
-            i++;
-//            Thread.sleep(100);
         }
         while (shouldRun);
 
-        return i;
+        return numberOfExecutions;
+    }
+
+    private String[] getSymbols() {
+        String[] symbols = new String[matrixRows*matrixRows];
+
+        for(int x=0; x<matrixRows; x++) {
+            char c1 = (char)(0x41+x);
+
+            int row = matrixRows * x;
+
+            for(int y=0; y<matrixRows; y++) {
+                char c2 = (char)(0x41+y);
+                symbols[row+y] = String.valueOf(c1) + c2;
+            }
+        }
+
+        return symbols;
     }
 }

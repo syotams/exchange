@@ -73,14 +73,6 @@ public class Market {
         return stats;
     }
 
-    public void print() {
-        Set<String> symbols = books.keySet();
-
-        for (String symbol : symbols) {
-            books.get(symbol).print();
-        }
-    }
-
     public void execute() {
         if(!bookInitiated || isExecuting) {
             return;
@@ -101,14 +93,14 @@ public class Market {
         try {
             while (isExecuting) {
                 Future<Integer> future = executor.take();
-                totalExecuted += future.get(10000, TimeUnit.MILLISECONDS);
+                totalExecuted += future.get(); //1000, TimeUnit.MILLISECONDS);
 
                 if(++totalBooksExecuted >= books.size()) {
                     isExecuting = false;
                 }
             }
         }
-        catch (InterruptedException | ExecutionException | TimeoutException e) {
+        catch (InterruptedException | ExecutionException e) {
             log.error(e.getMessage());
         } finally {
             isExecuting = false;

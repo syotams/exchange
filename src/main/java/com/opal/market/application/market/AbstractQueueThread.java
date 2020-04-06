@@ -5,13 +5,14 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 public abstract class AbstractQueueThread<T> extends Thread implements IQueue<T> {
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    protected final ArrayBlockingQueue<T> queue = new ArrayBlockingQueue<>(100000);
+    protected final ArrayBlockingQueue<T> queue = new ArrayBlockingQueue<>(50000);
 
     protected int totalHandled;
 
@@ -21,6 +22,7 @@ public abstract class AbstractQueueThread<T> extends Thread implements IQueue<T>
 
     @PostConstruct
     public void init() {
+        setName(getClass().getSimpleName());
         start();
     }
 

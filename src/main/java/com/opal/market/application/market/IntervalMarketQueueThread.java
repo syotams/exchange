@@ -4,6 +4,7 @@ import com.opal.market.domain.models.market.Market;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderSide;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -14,11 +15,12 @@ import java.util.concurrent.BlockingQueue;
 
 
 @Component
+@Lazy
 public class IntervalMarketQueueThread extends AbstractQueueThread<Order> implements IMarketQueue {
 
     private final Market market;
 
-    private BlockingQueue<NonBlockingTask> tasks = new ArrayBlockingQueue<>(100);
+    private BlockingQueue<NonBlockingTask> tasks = new ArrayBlockingQueue<>(10);
 
 
     public IntervalMarketQueueThread(@Autowired Market market) {
@@ -67,19 +69,19 @@ public class IntervalMarketQueueThread extends AbstractQueueThread<Order> implem
                     return market.getBuyBook(symbol);
             }
         });
-        tasks.add(task);
+        tasks.offer(task);
         return task;
     }
 
     public NonBlockingTask<Map<String, String>> stats() {
         NonBlockingTask<Map<String, String>> task = new NonBlockingTask<>(market::stats);
-        tasks.add(task);
+        tasks.offer(task);
         return task;
     }
 
     public NonBlockingTask<Map<String, Boolean>> hasMatch() {
         NonBlockingTask<Map<String, Boolean>> task = new NonBlockingTask<>(market::hasMatch);
-        tasks.add(task);
+        tasks.offer(task);
         return task;
     }
 }
