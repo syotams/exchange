@@ -1,7 +1,6 @@
 package com.opal.market.domain.models.order;
 
 import com.opal.market.domain.models.equity.Equity;
-import com.opal.market.domain.models.SortDir;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

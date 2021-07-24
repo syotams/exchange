@@ -3,7 +3,7 @@ package com.opal.market.domain.shared;
 /**
  * Specification interface.
  * <p/>
- * Use {@link AbstractSpecification} as base for creating specifications, and
+ * Use AbstractSpecification as base for creating specifications, and
  * only the method {@link #isSatisfiedBy(Object)} must be implemented.
  */
 public interface Specification<T> {

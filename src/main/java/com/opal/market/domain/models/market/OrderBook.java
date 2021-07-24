@@ -1,6 +1,5 @@
 package com.opal.market.domain.models.market;
 
-import com.opal.market.domain.models.SortDir;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderComparator;
 
@@ -14,13 +13,13 @@ import java.util.List;
  */
 public class OrderBook {
 
-    private List<Order> buyBook = new ArrayList<>();
+    private final List<Order> buyBook = new ArrayList<>();
 
-    private List<Order> sellBook = new ArrayList<>();
+    private final List<Order> sellBook = new ArrayList<>();
 
-    private OrderComparator buyBookComparator;
+    private final OrderComparator buyBookComparator;
 
-    private OrderComparator sellBookComparator;
+    private final OrderComparator sellBookComparator;
 
 
     public OrderBook() {

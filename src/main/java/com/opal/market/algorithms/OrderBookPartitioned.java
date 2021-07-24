@@ -1,11 +1,9 @@
 package com.opal.market.algorithms;
 
-import com.opal.market.domain.models.SortDir;
-import com.opal.market.domain.models.equity.Equity;
+
 import com.opal.market.domain.models.market.OrderBook;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderComparator;
-import com.opal.market.domain.models.order.OrderSide;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -14,14 +12,14 @@ import java.util.List;
 
 public class OrderBookPartitioned {
 
-    private OrderBook orderBookSingle;
+    private final OrderBook orderBookSingle;
 
-    private List<Order>[] orderBook;
+    private final List<Order>[] orderBook;
 
-    private BigDecimal lastPrice = BigDecimal.valueOf(51);
+    private final BigDecimal lastPrice = BigDecimal.valueOf(51);
 
-    private BigDecimal part1 = lastPrice.divide(BigDecimal.valueOf(1.05));
-    private BigDecimal part2 = lastPrice.divide(BigDecimal.valueOf(.95));
+    private final BigDecimal part1 = lastPrice.divide(BigDecimal.valueOf(1.05));
+    private final BigDecimal part2 = lastPrice.divide(BigDecimal.valueOf(.95));
 
 
     public OrderBookPartitioned() {

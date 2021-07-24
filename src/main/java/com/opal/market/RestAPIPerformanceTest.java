@@ -19,11 +19,11 @@ public class RestAPIPerformanceTest implements Callable<Integer> {
 
     private static int numberOfIterations = 1;
 
-    private static int numberOfWorkers = 500;
+    private static int numberOfWorkers = 5000;
 
     private static long timeToRun = 10000;
 
-    private static boolean useTime = true;
+    private static boolean useTime = false;
 
 
     public static void main(String[] args) {
