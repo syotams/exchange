@@ -1,18 +1,17 @@
 package com.opal.market.domain.models;
 
-import com.opal.market.domain.models.equity.Equity;
+import com.opal.market.domain.models.instruments.Equity;
 import com.opal.market.domain.models.market.OrderBook;
+import com.opal.market.domain.models.market.OrderBookOrdersExecutor;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderSide;
-import com.opal.market.domain.models.market.OrdersExecutor;
-import com.opal.market.domain.service.order.OrdersService;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class OrdersExecutorTest {
+public class OrderBookOrdersExecutorTest {
 
     @Test
     public void testExecution() {
@@ -34,9 +33,9 @@ public class OrdersExecutorTest {
         orderBook.addOrder(buyOrder2);
         orderBook.addOrder(buyOrder3);
 
-        OrdersExecutor ordersExecutor = new OrdersExecutor(new OrdersService());
-        ordersExecutor.setOrderBook(orderBook);
-        ordersExecutor.call();
+        OrderBookOrdersExecutor orderBookOrdersExecutor = new OrderBookOrdersExecutor();
+        orderBookOrdersExecutor.setOrderBook(orderBook);
+        orderBookOrdersExecutor.call();
 
         assertEquals(1, orderBook.getBuyBook().size());
     }
@@ -61,11 +60,10 @@ public class OrdersExecutorTest {
         orderBook.addOrder(buyOrder2);
         orderBook.addOrder(buyOrder3);
 
-        OrdersExecutor ordersExecutor = new OrdersExecutor(new OrdersService());
-        ordersExecutor.setOrderBook(orderBook);
-        ordersExecutor.call();
+        OrderBookOrdersExecutor orderBookOrdersExecutor = new OrderBookOrdersExecutor();
+        orderBookOrdersExecutor.setOrderBook(orderBook);
+        orderBookOrdersExecutor.call();
 
-        orderBook.print();
         assertEquals(0, orderBook.getBuyBook().size());
     }
 

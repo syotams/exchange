@@ -1,5 +1,6 @@
-package com.opal.market.application.market;
+package com.opal.market.application.exhange;
 
+import com.opal.market.application.exhange.queues.IExchangeQueue;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderSide;
 import org.slf4j.Logger;
@@ -12,26 +13,26 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 @Service
-public class MarketApplicationService implements IMarketApplicationService {
+public class ExchangeApplicationService implements IExchangeApplicationService {
 
-    private Logger log = LoggerFactory.getLogger(MarketApplicationService.class);
+    private final static Logger log = LoggerFactory.getLogger(ExchangeApplicationService.class);
 
-    private IMarketQueue marketQueue;
+    private final IExchangeQueue<Order> exchangeQueue;
 
 
     @Autowired
-    public MarketApplicationService(@Qualifier("intervalMarketQueueThread") IMarketQueue marketQueue) {
-        this.marketQueue = marketQueue;
+    public ExchangeApplicationService(@Qualifier("intervalExchangeQueueThread") IExchangeQueue<Order> exchangeQueue) {
+        this.exchangeQueue = exchangeQueue;
     }
 
     @Override
     public void addOrder(Order order) throws InterruptedException {
-        marketQueue.addItem(order);
+        exchangeQueue.addItem(order);
     }
 
     @Override
     public Order[] getOrderBook(String symbol, OrderSide side) {
-        NonBlockingTask<Order[]> book = marketQueue.getOrderBook(symbol, side);
+        NonBlockingTask<Order[]> book = exchangeQueue.getOrderBook(symbol, side);
 
         try {
             return book.get(1000);
@@ -42,9 +43,9 @@ public class MarketApplicationService implements IMarketApplicationService {
     }
 
     public Map<String, String> stats() {
-        Map<String, String> stats = marketQueue.stats().get();
-        stats.put("totalReceived", String.valueOf(marketQueue.getTotalReceived()));
-        stats.put("totalHandled", String.valueOf(marketQueue.getTotalHandled()));
+        Map<String, String> stats = exchangeQueue.stats().get();
+        stats.put("totalReceived", String.valueOf(exchangeQueue.getTotalReceived()));
+        stats.put("totalHandled", String.valueOf(exchangeQueue.getTotalHandled()));
         return stats;
     }
 }

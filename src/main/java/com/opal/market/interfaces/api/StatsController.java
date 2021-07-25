@@ -1,7 +1,7 @@
 package com.opal.market.interfaces.api;
 
 
-import com.opal.market.application.market.IMarketApplicationService;
+import com.opal.market.application.exhange.IExchangeApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,12 +11,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping(path = "/api/v1.0/market")
-public class MarketResource {
+public class StatsController {
 
-    private IMarketApplicationService marketApplicationService;
+    private IExchangeApplicationService marketApplicationService;
 
 
-    public MarketResource(@Autowired IMarketApplicationService marketApplicationService) {
+    public StatsController(@Autowired IExchangeApplicationService marketApplicationService) {
         this.marketApplicationService = marketApplicationService;
     }
 

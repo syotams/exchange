@@ -1,4 +1,4 @@
-package com.opal.market.domain.models.equity;
+package com.opal.market.domain.models.instruments;
 
 import java.util.Objects;
 

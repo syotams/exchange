@@ -1,11 +1,11 @@
-package com.opal.market.application.market;
+package com.opal.market.application.exhange;
 
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderSide;
 
 import java.util.Map;
 
-public interface IMarketApplicationService {
+public interface IExchangeApplicationService {
 
     void addOrder(Order order) throws InterruptedException;
 

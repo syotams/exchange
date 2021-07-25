@@ -1,6 +1,6 @@
 package com.opal.market.interfaces.api;
 
-import com.opal.market.application.market.IMarketApplicationService;
+import com.opal.market.application.exhange.IExchangeApplicationService;
 import com.opal.market.domain.models.order.Order;
 import com.opal.market.domain.models.order.OrderSide;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/api/v1.0/equities")
 public class EquityResource {
 
-    private final IMarketApplicationService marketApplicationService;
+    private final IExchangeApplicationService marketApplicationService;
 
     @Autowired
-    public EquityResource(IMarketApplicationService marketApplicationService) {
+    public EquityResource(IExchangeApplicationService marketApplicationService) {
         this.marketApplicationService = marketApplicationService;
     }
 

@@ -29,7 +29,7 @@
     <!--<logger name="com.opal" level="info" additivity="false">
         <appender-ref ref="file" />
     </logger>-->
-    <!--<logger name="com.opal" level="trace" additivity="false">
+    <logger name="com.opal" level="info" additivity="false">
         <appender-ref ref="stdout" />
-    </logger>-->
+    </logger>
 </configuration>

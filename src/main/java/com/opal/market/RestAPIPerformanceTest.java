@@ -4,30 +4,38 @@ package com.opal.market;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opal.market.domain.models.order.OrderSide;
 import com.opal.market.interfaces.api.CreateOrderCommand;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.OutputStreamWriter;
 import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class RestAPIPerformanceTest implements Callable<Integer> {
 
     private static int numberOfIterations = 10;
 
-    private static int numberOfWorkers = 400;
+    private static int numberOfWorkers = 16;
 
     private static long timeToRun = 60000;
 
-    private static boolean useTime = true;
+    private static boolean useTime = false;
 
+    private String name;
+
+
+    public RestAPIPerformanceTest(String name) {
+        this.name = name;
+    }
 
     public static void main(String[] args) {
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfWorkers);
         CompletionService<Integer> completionService = new ExecutorCompletionService<>(executorService);
 
         for(int i=0; i<numberOfWorkers; i++) {
-            completionService.submit(new RestAPIPerformanceTest());
+            completionService.submit(new RestAPIPerformanceTest("Worker " + i));
         }
 
         long startTime = System.currentTimeMillis();
@@ -59,7 +67,7 @@ public class RestAPIPerformanceTest implements Callable<Integer> {
     public Integer call() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        String[] symbols = new String[] {"LRCX", "MU", "BA", "GE", "AIG", "TEVA", "TSLA", "FRSX", "INTC", "BAC"};
+        String[] equities = new String[] {"LRCX", "MU", "BA", "GE", "AIG", "TEVA", "TSLA", "FRSX", "INTC", "BAC", "NVDA"};
 
         int i=0;
         boolean shouldRun;
@@ -79,7 +87,7 @@ public class RestAPIPerformanceTest implements Callable<Integer> {
             OrderSide side = Math.random() > 0.5 ? OrderSide.SELL : OrderSide.BUY;
 
             CreateOrderCommand command = new CreateOrderCommand();
-            command.setSymbol(symbols[(int) (Math.random()*symbols.length-1)]);
+            command.setSymbol(equities[(int) (Math.random()*equities.length-1)]);
             command.setPrice(bigDecimal50);
             command.setQuantity(quantity);
             command.setUserId((long) (Math.random() * 2 + 1));
@@ -91,8 +99,8 @@ public class RestAPIPerformanceTest implements Callable<Integer> {
 
             int responseCode = connection.getResponseCode();
 
-            if(responseCode == 200){
-                System.out.println("POST was successful.");
+            if(responseCode >= 200 && responseCode <=201){
+                System.out.format("POST %-9s:%d was successful.%n", name, i);
             }
             else if(responseCode == 401){
                 System.out.println("Wrong password.");
@@ -102,10 +110,8 @@ public class RestAPIPerformanceTest implements Callable<Integer> {
                 shouldRun = (System.currentTimeMillis() - startTime) < timeToRun;
             }
             else {
-                shouldRun = i < numberOfIterations;
+                shouldRun = ++i < numberOfIterations;
             }
-
-            i++;
 //            Thread.sleep(100);
         }
         while (shouldRun);

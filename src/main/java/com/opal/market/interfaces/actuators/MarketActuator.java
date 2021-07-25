@@ -1,6 +1,6 @@
 package com.opal.market.interfaces.actuators;
 
-import com.opal.market.application.market.IMarketApplicationService;
+import com.opal.market.application.exhange.IExchangeApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
@@ -12,10 +12,10 @@ import java.util.Map;
 @Endpoint(id = "market", enableByDefault=true)
 public class MarketActuator {
 
-    private IMarketApplicationService marketApplicationService;
+    private IExchangeApplicationService marketApplicationService;
 
 
-    public MarketActuator(@Autowired IMarketApplicationService marketApplicationService) {
+    public MarketActuator(@Autowired IExchangeApplicationService marketApplicationService) {
         this.marketApplicationService = marketApplicationService;
     }
 

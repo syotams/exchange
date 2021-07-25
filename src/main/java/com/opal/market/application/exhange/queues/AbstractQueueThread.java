@@ -1,23 +1,29 @@
-package com.opal.market.application.market;
+package com.opal.market.application.exhange.queues;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public abstract class AbstractQueueThread<T> extends Thread implements IQueue<T> {
+public abstract class AbstractQueueThread<T> extends Thread implements IExchangeQueue<T> {
 
-    private Logger log = LoggerFactory.getLogger(this.getClass());
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    protected final ArrayBlockingQueue<T> queue = new ArrayBlockingQueue<>(100000);
+    protected final BlockingQueue<T> queue = new ArrayBlockingQueue<>(1000000);
 
     protected int totalHandled;
 
     protected int totalReceived;
 
-    protected boolean isRunning;
+    protected volatile boolean isRunning;
+
+    public AbstractQueueThread(String name) {
+        super(name);
+    }
 
     @PostConstruct
     public void init() {
@@ -29,6 +35,14 @@ public abstract class AbstractQueueThread<T> extends Thread implements IQueue<T>
         if (queue.offer(item, 1000, TimeUnit.MILLISECONDS)) {
             totalReceived++;
             log.info("OrderCreated:" + item);
+        }
+    }
+
+    @Override
+    public void addItems(T[] item) {
+        if (queue.addAll(Arrays.asList(item))) {
+            totalReceived+=item.length;
+            log.info("Multiple OrderCreated:" + item.length);
         }
     }
 

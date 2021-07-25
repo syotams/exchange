@@ -14,13 +14,13 @@ import java.util.List;
  */
 public class OrderBook {
 
-    private List<Order> buyBook = new ArrayList<>();
+    private final List<Order> buyBook = new ArrayList<>();
 
-    private List<Order> sellBook = new ArrayList<>();
+    private final List<Order> sellBook = new ArrayList<>();
 
-    private OrderComparator buyBookComparator;
+    private final OrderComparator buyBookComparator;
 
-    private OrderComparator sellBookComparator;
+    private final OrderComparator sellBookComparator;
 
 
     public OrderBook() {
@@ -57,17 +57,5 @@ public class OrderBook {
 
     public int getSellBookSize() {
         return sellBook.size();
-    }
-
-    public void print() {
-        for (Order order : buyBook) {
-            System.out.println(order);
-        }
-
-        System.out.println("**********************");
-
-        for (Order order : sellBook) {
-            System.out.println(order);
-        }
     }
 }

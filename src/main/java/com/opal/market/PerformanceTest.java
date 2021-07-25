@@ -1,11 +1,14 @@
 package com.opal.market;
 
-import com.opal.market.application.market.IntervalMarketQueueThread;
-import com.opal.market.application.market.NonBlockingTask;
-import com.opal.market.domain.models.market.Market;
+import com.opal.market.application.exhange.queues.IntervalExchangeQueueThread;
+import com.opal.market.application.exhange.NonBlockingTask;
+import com.opal.market.domain.models.market.Exchange;
 import com.opal.market.domain.service.order.OrdersService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 
 import static java.lang.Thread.sleep;
@@ -14,30 +17,53 @@ public class PerformanceTest {
 
     private final OrdersService ordersService;
 
-    private IntervalMarketQueueThread intervalMarketQueueThread;
+    private IntervalExchangeQueueThread intervalExchangeQueueThread;
 
-    private int sleepTime = 1000;
+    private final int sleepTime = 1000;
+
+    private int numberOfBrokers = 10;
+
+    private int numberOfIter = 1000;
+
+    private int numberPerIter = 100;
+
+
+    private String[] instruments = new String[] {"LRCX", "NVDA", "APPL", "GE", "BA", "MU", "TSEM", "AIG", "MSFT", "TSLA"};
 
     public PerformanceTest() {
         ordersService = new OrdersService();
-        intervalMarketQueueThread = new IntervalMarketQueueThread(new Market(ordersService));
+        Exchange exchange = new Exchange(ordersService);
+        exchange.addInstruments(instruments);
+        intervalExchangeQueueThread = new IntervalExchangeQueueThread(exchange);
     }
 
     public static void main(String[] args) throws InterruptedException {
-        new PerformanceTest().run();
+        PerformanceTest performanceTest = new PerformanceTest();
+        if(args.length > 0) {
+            performanceTest.numberOfBrokers = Integer.parseInt(args[0]);
+        }
+        if(args.length > 1) {
+            performanceTest.numberOfIter = Integer.parseInt(args[1]);
+        }
+        if(args.length > 2) {
+            performanceTest.numberPerIter = Integer.parseInt(args[2]);
+        }
+        System.out.format("numberOfBrokers: %d, numberOfIter: %s, numberPerIter: %s%n",
+                performanceTest.numberOfBrokers,
+                performanceTest.numberOfIter,
+                performanceTest.numberPerIter);
+        performanceTest.run();
     }
 
     public void run() throws InterruptedException {
         long startTime = System.currentTimeMillis();
-        intervalMarketQueueThread.start();
-        startMetrics();
+        intervalExchangeQueueThread.start();
+        //startMetrics();
 
         List<Callable<Long>> tasks = new ArrayList<>();
 
-        int numberOfConcurrentFeeds = 3;
-
-        for(int i = 0; i< numberOfConcurrentFeeds; i++) {
-            tasks.add(new OrderMockCreator(intervalMarketQueueThread));
+        for(int i = 0; i< numberOfBrokers; i++) {
+            tasks.add(new OrderMockCreator(intervalExchangeQueueThread, instruments, numberOfIter, numberPerIter));
         }
 
         ExecutorService executorService = Executors.newFixedThreadPool(tasks.size());
@@ -59,7 +85,9 @@ public class PerformanceTest {
                 }
             }
         }
-        catch (InterruptedException | ExecutionException e) {}
+        catch (InterruptedException | ExecutionException e) {
+            System.out.println(e.getMessage());
+        }
         finally {
             executorService.shutdown();
         }
@@ -68,7 +96,7 @@ public class PerformanceTest {
 
         elapsedTime = System.currentTimeMillis() - startTime;
 
-        System.out.println("--------------------------- Adding " + intervalMarketQueueThread.getTotalReceived() + " orders elapsed time: " + (elapsedTime));
+        System.out.println("--------------------------- Adding " + intervalExchangeQueueThread.getTotalReceived() + " orders elapsed time: " + (elapsedTime));
 
         int matches;
         int i=0;
@@ -78,9 +106,9 @@ public class PerformanceTest {
         do {
             matches = 0;
 
-            intervalMarketQueueThread.join(sleepTime);
+            intervalExchangeQueueThread.join(sleepTime);
 
-            NonBlockingTask<Map<String, Boolean>> mapNonBlockingTask = intervalMarketQueueThread.hasMatch();
+            NonBlockingTask<Map<String, Boolean>> mapNonBlockingTask = intervalExchangeQueueThread.hasMatch();
             Map<String, Boolean> stringBooleanMap = mapNonBlockingTask.get();
             Set<String> symbols = stringBooleanMap.keySet();
 
@@ -91,8 +119,8 @@ public class PerformanceTest {
             }
         } while (matches > 0);
 
-        System.out.println(intervalMarketQueueThread.stats().get());
-        intervalMarketQueueThread.setRunning(false);
+        System.out.println(intervalExchangeQueueThread.stats().get());
+        intervalExchangeQueueThread.setRunning(false);
 
         System.out.println("--------------------------- Elapsed time: " + (System.currentTimeMillis() - startTime));
     }
@@ -107,21 +135,21 @@ public class PerformanceTest {
                 do {
                     sleep(sleepTime);
 
-                    System.out.println(intervalMarketQueueThread.stats().get());
+                    System.out.println(intervalExchangeQueueThread.stats().get());
 
-                    int totalReceived = intervalMarketQueueThread.getTotalHandled();
+                    int totalReceived = intervalExchangeQueueThread.getTotalHandled();
 
                     if(totalReceived > 0) {
                         ordersPerSecond.add(totalReceived - last);
                         last = totalReceived;
                     }
-                } while (intervalMarketQueueThread.isRunning());
+                } while (intervalExchangeQueueThread.isRunning());
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
-//            System.out.println("------------- Market received " + marketQueue.getTotalReceived() + " orders -----------");
-            System.out.println(ordersPerSecond);
-        }).start();
+            System.out.println("------------- Market received " + ordersPerSecond + " orders / sec -----------");
+//            System.out.println(ordersPerSecond);
+        }, "PerformanceMetrics").start();
     }
 }

@@ -1,6 +1,6 @@
 package com.opal.market.domain.models.order;
 
-import com.opal.market.domain.models.equity.Equity;
+import com.opal.market.domain.models.instruments.Equity;
 import com.opal.market.domain.models.PriceSpecification;
 import org.junit.jupiter.api.Test;
 

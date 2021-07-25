@@ -8,9 +8,9 @@ import java.util.Comparator;
 
 public class OrderComparator implements Comparator<Order> {
 
-    private PriceComparator priceComparator;
+    private final PriceComparator priceComparator;
 
-    private TimeComparator timeComparator;
+    private final TimeComparator timeComparator;
 
 
     public OrderComparator(SORT_DIR dir) {

@@ -1,6 +1,6 @@
 package com.opal.market.interfaces.api;
 
-import com.opal.market.application.market.OrdersApplicationService;
+import com.opal.market.application.exhange.OrdersApplicationService;
 import com.opal.market.domain.models.order.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
